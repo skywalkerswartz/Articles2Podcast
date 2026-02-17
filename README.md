@@ -23,7 +23,7 @@ An iOS app that converts web articles into audio for offline listening. Add arti
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/lukeswartz/Articles2Podcast.git
+   git clone https://github.com/skywalkerswartz/Articles2Podcast.git
    cd Articles2Podcast
    ```
 
