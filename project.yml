@@ -1,0 +1,87 @@
+name: Articles2Podcast
+options:
+  bundleIdPrefix: com.lukeswartz
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "26.2"
+  createIntermediateGroups: true
+  defaultConfig: Debug
+
+settings:
+  base:
+    SWIFT_VERSION: "6.2"
+    ENABLE_USER_SCRIPT_SANDBOXING: "YES"
+
+packages:
+  KokoroSwift:
+    url: https://github.com/mlalma/kokoro-ios.git
+    from: "1.0.0"
+  swift-readability:
+    url: https://github.com/Ryu0118/swift-readability.git
+    exactVersion: "0.3.0"
+
+targets:
+  Articles2Podcast:
+    type: application
+    platform: iOS
+    sources:
+      - Articles2Podcast
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lukeswartz.Articles2Podcast
+        INFOPLIST_FILE: Articles2Podcast/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Articles2Podcast/Articles2Podcast.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_STRICT_CONCURRENCY: complete
+    dependencies:
+      - package: KokoroSwift
+      - package: swift-readability
+        product: Readability
+      - target: ShareExtension
+    entitlements:
+      path: Articles2Podcast/Articles2Podcast.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.lukeswartz.articles2podcast
+    info:
+      path: Articles2Podcast/Info.plist
+      properties:
+        CFBundleDisplayName: Articles2Podcast
+        UILaunchScreen: {}
+        UIBackgroundModes:
+          - audio
+          - processing
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.lukeswartz.articles2podcast.processing
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+
+  ShareExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - ShareExtension
+      - path: Articles2Podcast/Models
+        name: SharedModels
+        compilerFlags: ""
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lukeswartz.Articles2Podcast.ShareExtension
+        INFOPLIST_FILE: ShareExtension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: ShareExtension/ShareExtension.entitlements
+        SWIFT_STRICT_CONCURRENCY: complete
+    entitlements:
+      path: ShareExtension/ShareExtension.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.lukeswartz.articles2podcast
+    info:
+      path: ShareExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Articles2Podcast
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).ShareViewController"
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
