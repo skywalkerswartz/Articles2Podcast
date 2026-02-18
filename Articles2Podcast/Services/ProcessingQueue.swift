@@ -89,7 +89,7 @@ final class ProcessingQueue {
         article.processedParagraphs = 0
         trySave(context)
 
-        let engine = TTSEngine(rawValue: UserDefaults.standard.string(forKey: "ttsEngine") ?? "apple_speech") ?? .appleSpeech
+        let engine = TTSEngine(rawValue: UserDefaults.standard.string(forKey: "ttsEngine") ?? "kokoro") ?? .kokoro
         let voiceId = UserDefaults.standard.string(forKey: "voiceId") ?? ""
 
         do {

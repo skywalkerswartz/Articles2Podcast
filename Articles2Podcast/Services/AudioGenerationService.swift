@@ -14,13 +14,19 @@ actor AudioGenerationService {
         voiceId: String,
         onProgress: @MainActor @Sendable @escaping (Int, Int) -> Void
     ) async throws -> (url: URL, duration: Double) {
-        let ttsService: TTSService = switch engine {
+        var ttsService: TTSService = switch engine {
         case .kokoro: KokoroTTSService()
         case .appleSpeech: AppleTTSService()
         }
 
+        // If the selected engine's model isn't available, fall back to Apple Speech
         if !ttsService.isModelLoaded {
-            try await ttsService.loadModel()
+            do {
+                try await ttsService.loadModel()
+            } catch {
+                logger.warning("Failed to load \(engine.displayName) model, falling back to Apple Speech: \(error.localizedDescription)")
+                ttsService = AppleTTSService()
+            }
         }
 
         let paragraphs = TextCleaner.splitIntoParagraphs(text)
@@ -32,14 +38,15 @@ actor AudioGenerationService {
         var paragraphURLs: [URL] = []
 
         for (index, paragraph) in paragraphs.enumerated() {
-            let paragraphURL = try await ttsService.synthesize(text: paragraph, voiceId: voiceId)
+            let rawURL = try await ttsService.synthesize(text: paragraph, voiceId: voiceId)
             let destURL = fileManager.paragraphFileURL(for: articleId, index: index)
 
-            if FileManager.default.fileExists(atPath: destURL.path) {
-                try FileManager.default.removeItem(at: destURL)
-            }
-            try FileManager.default.moveItem(at: paragraphURL, to: destURL)
-            paragraphURLs.append(destURL)
+            // Convert CAF/raw audio to M4A so AVMutableComposition can read it
+            let m4aURL = try await convertToM4A(source: rawURL, destination: destURL)
+            paragraphURLs.append(m4aURL)
+
+            // Clean up the raw temp file
+            try? FileManager.default.removeItem(at: rawURL)
 
             await onProgress(index + 1, totalParagraphs)
             logger.info("Generated paragraph \(index + 1)/\(totalParagraphs)")
@@ -53,6 +60,37 @@ actor AudioGenerationService {
         try? FileManager.default.removeItem(at: fileManager.paragraphDirectory(for: articleId))
 
         return (outputURL, duration)
+    }
+
+    /// Converts a raw audio file (CAF, WAV, etc.) to M4A (AAC) format
+    private func convertToM4A(source: URL, destination: URL) async throws -> URL {
+        // Ensure destination has .m4a extension
+        let m4aURL = destination.deletingPathExtension().appendingPathExtension("m4a")
+
+        if FileManager.default.fileExists(atPath: m4aURL.path) {
+            try FileManager.default.removeItem(at: m4aURL)
+        }
+
+        let asset = AVURLAsset(url: source)
+        guard let exportSession = AVAssetExportSession(
+            asset: asset,
+            presetName: AVAssetExportPresetAppleM4A
+        ) else {
+            // If export session can't be created, try direct copy as fallback
+            try FileManager.default.moveItem(at: source, to: m4aURL)
+            return m4aURL
+        }
+
+        exportSession.outputURL = m4aURL
+        exportSession.outputFileType = .m4a
+
+        await exportSession.export()
+
+        if let error = exportSession.error {
+            throw error
+        }
+
+        return m4aURL
     }
 
     private func concatenateAudioFiles(_ files: [URL], to outputURL: URL) async throws -> Double {

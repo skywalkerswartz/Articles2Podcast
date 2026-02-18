@@ -115,6 +115,16 @@ struct QueueView: View {
     }
 
     private func processNewArticles() async {
+        // Reset any articles stuck in intermediate processing states (from previous crash/kill)
+        let stuck = articles.filter { $0.state == .extracting || $0.state == .generatingAudio }
+        for article in stuck {
+            article.state = .pendingExtraction
+            article.errorMessage = nil
+        }
+        if !stuck.isEmpty {
+            try? modelContext.save()
+        }
+
         let pending = articles.filter { $0.state == .pendingExtraction }
         for article in pending {
             await processingQueue.processArticle(article, in: modelContext)

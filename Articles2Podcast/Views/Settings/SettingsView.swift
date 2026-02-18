@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("ttsEngine") private var ttsEngine: String = TTSEngine.appleSpeech.rawValue
+    @AppStorage("ttsEngine") private var ttsEngine: String = TTSEngine.kokoro.rawValue
     @AppStorage("voiceId") private var voiceId: String = ""
     @AppStorage("autoPlay") private var autoPlay = true
     @AppStorage("autoDelete") private var autoDelete = false
-    @AppStorage("allowCellular") private var allowCellular = true
+    @AppStorage("allowCellular") private var allowCellular = false
     @AppStorage("defaultPlaybackSpeed") private var defaultPlaybackSpeed: Double = 1.0
     @State private var modelManager = ModelDownloadManager.shared
 
@@ -84,7 +84,7 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Link("Source Code on GitHub", destination: URL(string: "https://github.com/lukeswartz/Articles2Podcast")!)
+                Link("Source Code on GitHub", destination: URL(string: "https://github.com/skywalkerswartz/Articles2Podcast")!)
             }
         }
         .navigationTitle("Settings")

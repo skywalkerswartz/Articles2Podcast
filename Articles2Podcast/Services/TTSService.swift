@@ -1,5 +1,8 @@
 import Foundation
 import AVFoundation
+import os.log
+
+private let logger = Logger(subsystem: "com.lukeswartz.articles2podcast", category: "TTS")
 
 // MARK: - Protocol
 
@@ -15,7 +18,6 @@ protocol TTSService: Sendable {
 
 final class AppleTTSService: TTSService, @unchecked Sendable {
     let engineType: TTSEngine = .appleSpeech
-    private let synthesizer = AVSpeechSynthesizer()
 
     var isModelLoaded: Bool { true }
 
@@ -38,45 +40,102 @@ final class AppleTTSService: TTSService, @unchecked Sendable {
     }
 
     func synthesize(text: String, voiceId: String) async throws -> URL {
+        let writer = SpeechWriter()
+        return try await writer.synthesize(text: text, voiceId: voiceId)
+    }
+}
+
+/// Encapsulates AVSpeechSynthesizer.write() with proper continuation safety and timeout.
+private final class SpeechWriter: NSObject, AVSpeechSynthesizerDelegate, @unchecked Sendable {
+    private let synthesizer = AVSpeechSynthesizer()
+    private var audioFile: AVAudioFile?
+    private var outputURL: URL?
+    private var continuation: CheckedContinuation<URL, any Error>?
+    private var hasResumed = false
+    private var timeoutTask: Task<Void, Never>?
+
+    override init() {
+        super.init()
+        synthesizer.delegate = self
+    }
+
+    func synthesize(text: String, voiceId: String) async throws -> URL {
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(identifier: voiceId)
             ?? AVSpeechSynthesisVoice(language: "en-US")
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
 
-        let outputURL = FileManager.default.temporaryDirectory
+        let url = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString + ".caf")
+        self.outputURL = url
 
-        var audioFile: AVAudioFile?
+        return try await withCheckedThrowingContinuation { cont in
+            self.continuation = cont
 
-        return try await withCheckedThrowingContinuation { continuation in
-            synthesizer.write(utterance) { buffer in
+            // Start a 60-second timeout
+            self.timeoutTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(60))
+                self?.resumeOnce(with: .failure(SpeechError.timeout))
+            }
+
+            self.synthesizer.write(utterance) { [weak self] buffer in
+                guard let self, !self.hasResumed else { return }
                 guard let pcmBuffer = buffer as? AVAudioPCMBuffer else { return }
 
                 if pcmBuffer.frameLength == 0 {
                     // Synthesis complete
-                    continuation.resume(returning: outputURL)
+                    self.timeoutTask?.cancel()
+                    self.resumeOnce(with: .success(url))
                     return
                 }
 
                 do {
-                    if audioFile == nil {
-                        audioFile = try AVAudioFile(
-                            forWriting: outputURL,
+                    if self.audioFile == nil {
+                        self.audioFile = try AVAudioFile(
+                            forWriting: url,
                             settings: pcmBuffer.format.settings,
                             commonFormat: .pcmFormatInt16,
                             interleaved: false
                         )
                     }
-                    try audioFile?.write(from: pcmBuffer)
+                    try self.audioFile?.write(from: pcmBuffer)
                 } catch {
-                    continuation.resume(throwing: error)
+                    self.timeoutTask?.cancel()
+                    self.resumeOnce(with: .failure(error))
                 }
+            }
+        }
+    }
+
+    private func resumeOnce(with result: Result<URL, any Error>) {
+        guard !hasResumed else { return }
+        hasResumed = true
+        switch result {
+        case .success(let url): continuation?.resume(returning: url)
+        case .failure(let error): continuation?.resume(throwing: error)
+        }
+    }
+
+    // Delegate: handle unexpected cancellation
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        timeoutTask?.cancel()
+        resumeOnce(with: .failure(SpeechError.cancelled))
+    }
+
+    enum SpeechError: LocalizedError {
+        case timeout
+        case cancelled
+
+        var errorDescription: String? {
+            switch self {
+            case .timeout: "Speech synthesis timed out. Try again or switch TTS engine."
+            case .cancelled: "Speech synthesis was cancelled."
             }
         }
     }
 }
 
-// MARK: - Kokoro TTS (Placeholder — requires KokoroSwift integration)
+// MARK: - Kokoro TTS
 
 final class KokoroTTSService: TTSService, @unchecked Sendable {
     let engineType: TTSEngine = .kokoro
