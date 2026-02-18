@@ -13,9 +13,11 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: "YES"
 
 packages:
-  KokoroSwift:
-    url: https://github.com/mlalma/kokoro-ios.git
-    from: "1.0.0"
+  # KokoroSwift: requires real device (MLX Metal APIs unavailable on simulator)
+  # Uncomment when building for device with Apple Developer account:
+  # KokoroSwift:
+  #   url: https://github.com/mlalma/kokoro-ios.git
+  #   from: "1.0.0"
   swift-readability:
     url: https://github.com/Ryu0118/swift-readability.git
     exactVersion: "0.3.0"
@@ -34,7 +36,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_STRICT_CONCURRENCY: complete
     dependencies:
-      - package: KokoroSwift
+      # - package: KokoroSwift  # Uncomment for device builds
       - package: swift-readability
         product: Readability
       - target: ShareExtension

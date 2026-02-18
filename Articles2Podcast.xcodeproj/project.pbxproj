@@ -33,11 +33,10 @@
 		A2D10518CB38F337B0403217 /* PlaybackSpeedPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDDF4BC5BA2BB454E5215647 /* PlaybackSpeedPicker.swift */; };
 		AE6F0E70B068F48AC4F2FE0D /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C4EA07BF18D445B40487E5 /* ShareViewController.swift */; };
 		B94AD613F88272667FCAF1F6 /* QueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2032C9307406C4393F02B3D5 /* QueueView.swift */; };
-		B994254EE1776B54AAADCDA7 /* KokoroSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 40003073CB0C5B3929894E17 /* KokoroSwift */; };
+		B994254EE1776B54AAADCDA7 /* Readability in Frameworks */ = {isa = PBXBuildFile; productRef = F026E26237D0649E751894C0 /* Readability */; };
 		C82895BE2ADC0924F4C8880C /* Article.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDE2018270EF01B1FFBD6A1 /* Article.swift */; };
 		DA5C253687F1255C92695EC1 /* ArticleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47DF487ECE3D46ACBD3148E /* ArticleState.swift */; };
 		DAFA59D7E935C6E0FB3EAAD5 /* AddArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35C625AC0B94226A6B9CCBB1 /* AddArticleView.swift */; };
-		DDE3B5D79D1FF024CBC21F71 /* Readability in Frameworks */ = {isa = PBXBuildFile; productRef = F026E26237D0649E751894C0 /* Readability */; };
 		E07F12207FEC2FFF5F5C5424 /* Article.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDE2018270EF01B1FFBD6A1 /* Article.swift */; };
 		F932DB906A6D5886823ACE28 /* ProcessingQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D6AAB9E0188DE79FD645BB /* ProcessingQueue.swift */; };
 		FB3203E51808BC56E4083CD4 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE7B59EB937C1EACA52D726 /* SettingsView.swift */; };
@@ -108,8 +107,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B994254EE1776B54AAADCDA7 /* KokoroSwift in Frameworks */,
-				DDE3B5D79D1FF024CBC21F71 /* Readability in Frameworks */,
+				B994254EE1776B54AAADCDA7 /* Readability in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,7 +261,6 @@
 			);
 			name = Articles2Podcast;
 			packageProductDependencies = (
-				40003073CB0C5B3929894E17 /* KokoroSwift */,
 				F026E26237D0649E751894C0 /* Readability */,
 			);
 			productName = Articles2Podcast;
@@ -307,7 +304,6 @@
 			mainGroup = 004B6AA06FC35C940F8D1EC9;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				1B5517E2E314189394A6C866 /* XCRemoteSwiftPackageReference "kokoro-ios" */,
 				BC0C6797C9667919B92C97F5 /* XCRemoteSwiftPackageReference "swift-readability" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -611,14 +607,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		1B5517E2E314189394A6C866 /* XCRemoteSwiftPackageReference "kokoro-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mlalma/kokoro-ios.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
 		BC0C6797C9667919B92C97F5 /* XCRemoteSwiftPackageReference "swift-readability" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Ryu0118/swift-readability.git";
@@ -630,11 +618,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		40003073CB0C5B3929894E17 /* KokoroSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1B5517E2E314189394A6C866 /* XCRemoteSwiftPackageReference "kokoro-ios" */;
-			productName = KokoroSwift;
-		};
 		F026E26237D0649E751894C0 /* Readability */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = BC0C6797C9667919B92C97F5 /* XCRemoteSwiftPackageReference "swift-readability" */;
